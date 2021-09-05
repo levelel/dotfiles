@@ -1,19 +1,15 @@
 """ Optixal's Neovim Init.vim
-
+""" Forked by levelel 
+"""  
 "" Vim-Plug
 call plug#begin()
 
 " Aesthetics - Main
-" Plug 'dracula/vim', { 'as': 'dracula' }
-" Plug 'tomasiser/vim-code-dark'
-" Plug 'GlennLeo/cobalt2'
 Plug 'Rigellute/rigel'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'bryanmylee/vim-colorscheme-icons'
 Plug 'mhinz/vim-startify'
-Plug 'junegunn/goyo.vim'
-Plug 'junegunn/limelight.vim'
 Plug 'junegunn/seoul256.vim'
 Plug 'junegunn/vim-journal'
 Plug 'junegunn/rainbow_parentheses.vim'
@@ -27,6 +23,7 @@ Plug 'chriskempson/tomorrow-theme', { 'rtp': 'vim' }
 Plug 'rhysd/vim-color-spring-night'
 
 " Functionalities
+Plug 'justinmk/vim-sneak'
 Plug 'tomtom/tcomment_vim'
 Plug 'tpope/vim-repeat'
 Plug 'haya14busa/incsearch.vim'
@@ -34,6 +31,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-sensible'
 Plug 'tpope/vim-surround'
 Plug 'majutsushi/tagbar'
+Plug 'ms-jpq/chadtree', {'branch': 'chad', 'do': 'python3 -m chadtree deps'}
 Plug 'preservim/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'ryanoasis/vim-devicons'
@@ -48,23 +46,28 @@ Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'airblade/vim-rooter'
 Plug 'sheerun/vim-polyglot'
-Plug 'chrisbra/Colorizer'
+Plug 'norcalli/nvim-colorizer.lua'
 Plug 'KabbAmine/vCoolor.vim'
 Plug 'heavenshell/vim-pydocstring', { 'do': 'make install' }
 Plug 'vim-scripts/loremipsum'
 Plug 'metakirby5/codi.vim'
 Plug 'dkarter/bullets.vim'
-Plug 'psliwka/vim-smoothie'
 Plug 'antoinemadec/FixCursorHold.nvim'
+Plug 'karb94/neoscroll.nvim'
 Plug 'wellle/context.vim'
 
-" Entertainment
-Plug 'dansomething/vim-hackernews'
 
 call plug#end()
 
 """ Main Configurations
 filetype plugin indent on
+set pumheight=10                        " Makes popu  menu smaller
+set mouse=a                             " Enable your mouse
+set mousetime=0
+set timeoutlen=500
+set formatoptions-=cro                  " Stop newline continution of comments
+set cursorline                          " Hightlight current line
+set splitbelow splitright               " new split will be below and right
 set tabstop=4 softtabstop=4 shiftwidth=4 expandtab smarttab autoindent
 set incsearch ignorecase smartcase 
 set hlsearch " for incsearch.vim
@@ -76,16 +79,15 @@ set hlsearch " for incsearch.vim
     map g* <Plug>(incsearch-nohl-g*)
     map g# <Plug>(incsearch-nohl-g#)
 set wildmode=longest,list,full wildmenu
-set ruler laststatus=2 showcmd showmode
+set ruler laststatus=2 showcmd noshowmode
 set list listchars=trail:»,tab:»-
-set fillchars+=vert:\ 
 set wrap breakindent
-set encoding=utf-8
 set textwidth=0
 set hidden
 set number
 set title
 set guicursor=a:blinkwait700-blinkon400-blinkoff250
+set fillchars+=vert:\
 
 """ Coloring
 
@@ -117,7 +119,26 @@ colorscheme rigel
 " Enable True Color Support (ensure you're using a 256-color enabled $TERM, e.g. xterm-256color)
 set termguicolors
 
+" settings for GUI vim clients such as Neovide
+set guifont=MesloLGS\ NF:h14
+
 """ Plugin Configurations
+
+" neoscroll
+lua require('neoscroll').setup()
+
+" vim-sneak
+let g:sneak#label = 1
+let g:sneak#use_ic_scs = 1
+let g:sneak#s_next = 1
+" Change the colors
+highlight Sneak guifg=black guibg=#00C7DF ctermfg=black ctermbg=cyan
+highlight SneakScope guifg=red guibg=yellow ctermfg=red ctermbg=yellow
+" remap f and t to use sneak
+map f <Plug>Sneak_f
+map F <Plug>Sneak_F
+map t <Plug>Sneak_k
+map T <Plug>Sneak_T
 
 " NERDTree
 let NERDTreeShowHidden=1
@@ -196,7 +217,7 @@ autocmd VimEnter *
     \ |   wincmd w
     \ | endif
 
-" coc.vim START
+"coc.vim START
 
 " Having longer updatetime (default is 4000 ms = 4 s) leads to noticeable
 " delays and poor user experience.
@@ -311,6 +332,9 @@ autocmd FileType htmldjango inoremap {# {#  #}<left><left><left>
 autocmd FileType markdown setlocal shiftwidth=2 tabstop=2 softtabstop=2
 autocmd FileType journal setlocal shiftwidth=2 tabstop=2 softtabstop=2
 
+" auto source when writing to init.vm alternatively you     can run :source $MYVIMRC
+au! BufWritePost $MYVIMRC source %
+
 """ Custom Functions
 
 " Trim Whitespaces
@@ -346,12 +370,16 @@ function! ColorZazen()
     color zazen
 endfunction
 
+" colorizer
+lua require'colorizer'.setup()
+
 """ Custom Mappingo
 
 let mapleader=" "
-nmap <leader>$s <C-w>s<C-w>j:terminal<CR>:set nonumber<CR><S-a>
-nmap <leader>$v <C-w>v<C-w>l:terminal<CR>:set nonumber<CR><S-a>
-nmap <leader>q :NERDTreeToggle<CR>
+nmap <leader>tt :vnew term://fish<CR>
+map <leader>th <C-w>t<C-w>H " change two split from vert to horiz
+map <leader>tk <C-w>t<C-w>K
+nmap <leader>q :NERDTree .<CR>
 nmap \\ <leader>q
 nmap <leader>w :TagbarToggle<CR>
 nmap \| <leader>w
@@ -363,20 +391,33 @@ nmap <leader>e3 :call ColorForgotten()<CR>
 nmap <leader>e4 :call ColorZazen()<CR>
 nmap <leader>r :so ~/.config/nvim/init.vim<CR>
 nmap <leader>t :call TrimWhitespace()<CR>
-nmap <leader>y <C-w>v<C-w>l:HackerNews best<CR>J
 nmap <leader>p <Plug>(pydocstring)
 xmap <leader>a gaip*
-nmap <leader>a gaip*
+nmap <leader>a gai
 nmap <leader>s :Rg<CR>
 nmap <leader>d :Files<CR>
 nmap <leader>f :BLines<CR>
-nmap <leader>g :Goyo<CR>
 nmap <leader>h :RainbowParentheses!!<CR>
 nmap <leader>j :set filetype=journal<CR>
 nmap <leader>k :ColorToggle<CR>
-nmap <leader>l :Limelight!!<CR>
-xmap <leader>l :Limelight!!<CR>
 autocmd FileType python nmap <leader>x :0,$!~/.config/nvim/env/bin/python -m yapf<CR>
 nmap <silent> <leader><leader> :noh<CR>
 nmap <Tab> :bnext<CR>
 nmap <S-Tab> :bprevious<CR>
+
+" Use alt + arrow keys to resize windows
+nnoremap <silent> <C-.> :vertical resize +2<CR>
+nnoremap <silent> <C-,> :vertical resize -2<CR>
+nnoremap <silent> <C-=> :resize +2<CR>
+nnoremap <silent> <C--> :resize -2<CR>
+
+" Use ctrl + hjkl to navigate between windows
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+" map mouse wheel scrolls to use Neoscroll's scrolling to improve
+" responsiveness of mouse scrolling
+map <ScrollWheelUp> <C-u>
+map <ScrollWheelDown> <C-d>
